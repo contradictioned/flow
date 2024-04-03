@@ -1,5 +1,5 @@
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
-import { buildRoute } from "Frontend/generated/flow/Flow";
+import { type RouteObject } from 'react-router-dom';
+import { buildRoute, createRouter } from "Frontend/generated/flow/Flow";
 
 export const routes = buildRoute();
 
@@ -15,4 +15,5 @@ export const routes = buildRoute();
 // ] as RouteObject[];
 // export const routes = buildRoute(routing, routing[0].children);
 
-export default createBrowserRouter(routes);
+// export default createBrowserRouter(routes);
+export default createRouter(routes);
