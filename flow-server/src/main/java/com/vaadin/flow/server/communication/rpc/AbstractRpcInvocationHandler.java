@@ -23,7 +23,9 @@ import com.vaadin.flow.component.PollEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UI.BrowserLeaveNavigationEvent;
 import com.vaadin.flow.component.UI.BrowserNavigateEvent;
+import com.vaadin.flow.internal.NodeOwner;
 import com.vaadin.flow.internal.StateNode;
+import com.vaadin.flow.internal.StateTree;
 import com.vaadin.flow.shared.JsonConstants;
 
 import elemental.json.JsonObject;
@@ -62,18 +64,24 @@ public abstract class AbstractRpcInvocationHandler
         // ignore RPC requests from the client side for the nodes that are
         // invisible, disabled or inert
         if (node.isInactive()) {
-            getLogger().trace("Ignored RPC for invocation handler '{}' from "
+            getLogger().info("Ignored RPC for invocation handler '{}' from "
                     + "the client side for an inactive (disabled or invisible) node id='{}'",
                     getClass().getName(), node.getId());
             return Optional.empty();
         } else if (!allowInert(ui, invocationJson) && node.isInert()) {
-            getLogger().trace(
-                    "Ignored RPC for invocation handler '{}' from "
-                            + "the client side for an inert node id='{}'",
-                    getClass().getName(), node.getId());
-            return Optional.empty();
+            if(this instanceof EventRpcHandler) {
+                // EventRpcHandler has special handling
+                return handleNode(node, invocationJson, true);
+            } else {
+                // Drop others already here for safer implementation
+                getLogger().info(
+                        "Ignored RPC for invocation handler '{}' from "
+                                + "the client side for an inert node id='{}'",
+                        getClass().getName(), node.getId());
+                return Optional.empty();
+            }
         } else {
-            return handleNode(node, invocationJson);
+            return handleNode(node, invocationJson,false);
         }
     }
 
@@ -213,10 +221,11 @@ public abstract class AbstractRpcInvocationHandler
      *            node to handle invocation with, not {@code null}
      * @param invocationJson
      *            the RPC data to handle, not {@code null}
+     * @param inert the node is inert, handle only if explicitly allowed
      * @return an optional runnable
      */
     protected abstract Optional<Runnable> handleNode(StateNode node,
-            JsonObject invocationJson);
+            JsonObject invocationJson, boolean inert);
 
     private static Logger getLogger() {
         return LoggerFactory
