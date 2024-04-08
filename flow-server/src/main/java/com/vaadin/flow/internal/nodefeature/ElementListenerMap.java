@@ -430,11 +430,12 @@ public class ElementListenerMap extends NodeMap {
      * @param event
      *            the event to fire
      */
-    public void fireEvent(DomEvent event, boolean inert) {
+    public void fireEvent(DomEvent event) {
         if (listeners == null) {
             return;
         }
-        boolean isElementEnabled = event.getSource().isEnabled();
+        final boolean isElementEnabled = event.getSource().isEnabled();
+        final boolean inert = event.getSource().getNode().isInert();
 
         List<DomEventListenerWrapper> typeListeners = listeners
                 .get(event.getType());
@@ -444,13 +445,12 @@ public class ElementListenerMap extends NodeMap {
 
         List<DomEventListener> listeners = new ArrayList<>();
         for (DomEventListenerWrapper wrapper : typeListeners) {
-            if(inert && !wrapper.allowIntert) {
+            if (inert && !wrapper.allowIntert) {
                 // drop as inert
-                LoggerFactory
-                        .getLogger(ElementListenerMap.class.getName()).info(
-                        "Ignored listener invocation from "
+                LoggerFactory.getLogger(ElementListenerMap.class.getName())
+                        .info("Ignored listener invocation from "
                                 + "the client side for an inert {} element",
-                        event.getSource().getTag());
+                                event.getSource().getTag());
                 continue;
             }
 
